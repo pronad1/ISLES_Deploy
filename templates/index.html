@@ -4,16 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="AI-Powered Medical Image Analysis for Spine X-rays - Professional diagnostic assistance using deep learning">
-    <meta name="keywords" content="spine, medical imaging, AI, deep learning, radiology, DICOM">
-    <title>Spinal Lesion Detection System | AI-Powered Diagnostic Tool</title>
+    <meta name="description" content="AI-Powered Medical Image Analysis for Stroke Segmentation">
+    <title>DSANet-ISLES Stroke Lesion Segmentation System | AI Diagnostic Tool</title>
 
     <!-- Favicon -->
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
-
-    <!-- Stylesheets -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 
@@ -23,129 +18,91 @@
             <!-- Header -->
             <header class="app-header">
                 <div class="header-content">
-                    <div class="header-icon">🏥</div>
-                    <h1 class="header-title">Spinal Lesion Detection System</h1>
-                    <p class="header-subtitle">AI-Powered Medical Image Analysis for Spine X-rays & MRI</p>
+                    <div class="header-icon">🧠</div>
+                    <h1 class="header-title">DSANet-ISLES Stroke Lesion Segmentation System</h1>
+                    <p class="header-subtitle">Interpretable Multi-Architecture Ensemble for Low-Resource Segmentation</p>
 
                     <div class="header-stats">
                         <div class="stat-item">
-                            <span class="stat-value">91.03%</span>
-                            <span class="stat-label">AUROC</span>
+                            <span class="stat-value">92.00%</span>
+                            <span class="stat-label">DSC</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value">83.09%</span>
-                            <span class="stat-label">F1-Score</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">DERNet</span>
+                            <span class="stat-value">DSANet</span>
                             <span class="stat-label">Ensemble</span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- Main Content -->
             <main class="app-content">
                 <!-- Upload Section -->
                 <section>
                     <div class="upload-zone" id="uploadZone">
                         <div class="upload-icon">📁</div>
-                        <div class="upload-title">Drop your DICOM file here or click to browse</div>
-                        <div class="upload-hint">Supported format: .dcm, .dicom (Max 16MB)</div>
-                        <input type="file" id="fileInput" accept=".dcm,.dicom" hidden>
+                        <div class="upload-title">Drop your MRI slice or normal image here</div>
+                        <div class="upload-hint">Supported formats: .dcm, .jpg, .png, .jpeg (Max 16MB)</div>
+                        <input type="file" id="fileInput" accept=".dcm,.dicom,.jpg,.jpeg,.png" hidden>
                         <button class="btn btn-primary" id="uploadBtn" style="display: none; margin-top: 1.5rem;">
-                            🔍 Analyze Scan
+                            🔬 Analyze Stroke Lesion
                         </button>
                     </div>
                 </section>
 
-                <!-- Loading Screen -->
-                <section class="loading-screen" id="loadingScreen">
+                <section class="loading-screen" id="loadingScreen" style="display: none;">
                     <div class="spinner"></div>
-                    <p class="loading-text">Analyzing medical image...</p>
-                    <p class="loading-subtext">This may take a few moments. Our AI models are processing your scan.</p>
+                    <p class="loading-text">Generating Segmentation Mask...</p>
+                    <p class="loading-subtext">Executing 3D Test-Time Augmentations via SegResNet, AttentionUnet, and DERNet.</p>
                 </section>
 
-                <!-- Error Alert -->
-                <section class="alert alert-error" id="alertError">
+                <section class="alert alert-error" id="alertError" style="display: none;">
                     <div class="text-center">
                         <div class="alert-icon">⚠️</div>
                         <div class="alert-title">Upload Error</div>
                         <p id="errorMessage"></p>
-                        <button class="btn btn-primary mt-lg" onclick="retryUpload()">
+                        <button class="btn btn-primary mt-lg" onclick="location.reload()">
                             🔄 Try Again
                         </button>
                     </div>
                 </section>
 
                 <!-- Results Section -->
-                <section class="results-container" id="resultsContainer">
-                    <!-- Classification Results -->
-                    <article class="result-card" id="classificationCard">
+                <section class="results-container" id="resultsContainer" style="display: none;">
+                    <article class="result-card">
                         <div class="result-header">
-                            <h2 class="result-title">📊 Classification Result</h2>
-                            <span class="status-badge" id="statusBadge"></span>
+                            <h2 class="result-title">📊 Stroke Segmentation Result</h2>
                         </div>
 
                         <div class="metrics-grid">
                             <div class="metric-box">
-                                <div class="metric-label">Ensemble Score</div>
-                                <div class="metric-value" id="ensembleScore">-</div>
+                                <div class="metric-label">Infarct Volume (mL)</div>
+                                <div class="metric-value" id="infarctVolume">-</div>
                             </div>
                             <div class="metric-box">
-                                <div class="metric-label">Confidence</div>
-                                <div class="metric-value" id="confidence">-</div>
-                            </div>
-                            <div class="metric-box">
-                                <div class="metric-label">DenseNet121</div>
-                                <div class="metric-value" id="densenet">-</div>
-                            </div>
-                            <div class="metric-box">
-                                <div class="metric-label">ResNet50</div>
-                                <div class="metric-value" id="resnet">-</div>
-                            </div>
-                            <div class="metric-box">
-                                <div class="metric-label">EfficientNetV2-S</div>
-                                <div class="metric-value" id="efficientnet">-</div>
+                                <div class="metric-label">Lesion Pixels</div>
+                                <div class="metric-value" id="lesionPixels">-</div>
                             </div>
                         </div>
                     </article>
 
-                    <!-- Detection Results -->
-                    <article class="result-card" id="detectionCard" style="display: none;">
-                        <div class="result-header">
-                            <h2 class="result-title">🎯 Lesion Detection Results</h2>
-                        </div>
-
-                        <p style="margin-bottom: 1rem;">
-                            <strong>Detected Abnormalities:</strong>
-                            <span id="numDetections"
-                                style="color: var(--danger); font-size: 1.25rem; font-weight: 700;">0</span>
-                        </p>
-
-                        <div class="detection-list" id="detectionList"></div>
-
-                        <div class="image-preview">
-                            <h3 style="color: var(--gray-800); margin-bottom: 1rem;">Annotated Image with Lesion
-                                Boundaries</h3>
-                            <img id="annotatedImage" src="" alt="Annotated scan" class="preview-image">
-                            <button class="btn btn-success mt-lg" onclick="downloadAnnotatedImage()">
-                                📥 Download Annotated Image
-                            </button>
-                        </div>
-                    </article>
-
-                    <!-- Original Image Preview -->
                     <article class="result-card">
                         <div class="result-header">
-                            <h2 class="result-title">📋 Original Scan & Metadata</h2>
+                            <h2 class="result-title">🎯 Lesion Segmentation Mask Overlay</h2>
+                        </div>
+
+                        <div class="image-preview">
+                            <h3 style="color: var(--gray-800); margin-bottom: 1rem;">Annotated MRI Slice</h3>
+                            <img id="annotatedImage" src="" alt="Annotated scan" class="preview-image">
+                        </div>
+                    </article>
+
+                    <article class="result-card">
+                        <div class="result-header">
+                            <h2 class="result-title">📋 Original MRI Scan</h2>
                         </div>
 
                         <div class="image-preview">
                             <img id="previewImage" src="" alt="Original scan" class="preview-image">
-                            <button class="btn btn-secondary mt-lg" onclick="downloadOriginalImage()">
-                                📥 Download Original Image
-                            </button>
                         </div>
 
                         <div class="metrics-grid mt-lg">
@@ -167,148 +124,17 @@
                             </div>
                         </div>
                     </article>
-
-                    <!-- Performance Evaluation Section -->
-                    <section class="viz-section">
-                        <h2 class="viz-title">🔬 Model Interpretability & Explainability</h2>
-                        <p class="viz-subtitle">
-                            Generate advanced visualizations to understand how our AI models make predictions
-                        </p>
-
-                        <div class="viz-buttons">
-                            <button class="viz-btn" id="gradcamBtn" onclick="generateGradCAM()">
-                                <span class="icon">🔥</span>
-                                <span>Grad-CAM Heatmap</span>
-                            </button>
-                            <button class="viz-btn" id="limeBtn" onclick="generateLIME()">
-                                <span class="icon">🔍</span>
-                                <span>LIME Analysis</span>
-                            </button>
-                            <button class="viz-btn" id="segmentationBtn" onclick="generateSegmentation()">
-                                <span class="icon">🎯</span>
-                                <span>Visualization View</span>
-                            </button>
-                        </div>
-
-                        <!-- Grad-CAM Results -->
-                        <div class="loading-screen" id="gradcamLoading">
-                            <div class="spinner"></div>
-                            <p class="loading-text">Generating Grad-CAM visualizations...</p>
-                        </div>
-                        <div class="viz-result" id="gradcamResult">
-                            <h3 style="color: var(--primary-blue); margin-bottom: 1rem;">📊 Grad-CAM Analysis - Ensemble
-                                Model</h3>
-                            <p style="color: var(--gray-600); margin-bottom: 1rem;">
-                                This ensemble Grad-CAM combines attention from all three models (DenseNet121 42%,
-                                ResNet50 26%,
-                                EfficientNetV2-S 32%). Warmer colors (red/yellow) indicate regions where the AI focuses
-                                when making predictions.
-                            </p>
-                            <img id="gradcamImage" src="" alt="Grad-CAM Visualization" class="preview-image">
-                            <button class="btn btn-success mt-lg" onclick="downloadGradCAM()">
-                                📥 Download Grad-CAM
-                            </button>
-                        </div>
-
-                        <!-- LIME Results -->
-                        <div class="loading-screen" id="limeLoading">
-                            <div class="spinner"></div>
-                            <p class="loading-text">Generating LIME explanations... This may take 10-20 seconds.</p>
-                        </div>
-                        <div class="viz-result" id="limeResult">
-                            <h3 style="color: var(--primary-blue); margin-bottom: 1rem;">🔍 LIME Explainability Analysis
-                            </h3>
-                            <p style="color: var(--gray-600); margin-bottom: 1rem;">
-                                LIME (Local Interpretable Model-agnostic Explanations) shows which regions contribute
-                                most to the
-                                ensemble prediction. Green boundaries highlight important areas, and the heatmap shows
-                                contribution strength.
-                            </p>
-                            <img id="limeImage" src="" alt="LIME Visualization" class="preview-image">
-                            <button class="btn btn-success mt-lg" onclick="downloadLIME()">
-                                📥 Download LIME Analysis
-                            </button>
-                        </div>
-
-                        <!-- Segmentation Results -->
-                        <div class="loading-screen" id="segmentationLoading">
-                            <div class="spinner"></div>
-                            <p class="loading-text">Generating segmentation visualizations...</p>
-                        </div>
-                        <div class="viz-result" id="segmentationResult">
-                            <h3 style="color: var(--primary-blue); margin-bottom: 1rem;">🎯 Qualitative Visualization
-                                Analysis</h3>
-                            <p style="color: var(--gray-600); margin-bottom: 1rem;">
-                                Segmentation visualization shows ground truth vs predicted masks, error analysis
-                                (green=false negatives, red=false positives), and boundary accuracy details.
-                            </p>
-                            <img id="segmentationImage" src="" alt="Segmentation Visualization" class="preview-image">
-                            <button class="btn btn-success mt-lg" onclick="downloadSegmentation()">
-                                📥 Download Segmentation
-                            </button>
-                        </div>
-                    </section>
-
-                    <!-- Important Medical Notice -->
-                    <aside class="info-box">
-                        <h3 class="info-box-title">⚕️ Important Medical Notice</h3>
-                        <p>
-                            This AI analysis is for research and educational purposes only and should not replace
-                            professional medical diagnosis. Please consult with a qualified radiologist or physician
-                            for medical advice and treatment decisions.
-                        </p>
-                    </aside>
-
-                    <!-- New Scan Button -->
-                    <div class="text-center mt-lg">
-                        <button class="btn btn-primary" id="newScanBtn">
-                            🔄 Analyze Another Scan
+                    
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button class="btn btn-primary" onclick="location.reload()">
+                            🔄 Submit New Scan
                         </button>
                     </div>
                 </section>
+
             </main>
-
-            <!-- Footer -->
-            <footer class="app-footer">
-                <div class="footer-content">
-                    <p class="footer-title">Spinal Lesion Detection System v2.0</p>
-
-                    <div class="footer-warning">
-                        <strong>⚕️ Medical Disclaimer:</strong> This AI-powered system is designed for research and
-                        educational purposes only. It should not be used as a substitute for professional medical
-                        diagnosis, advice, or treatment. Always consult qualified healthcare professionals for medical
-                        decisions.
-                    </div>
-
-                    <div class="footer-stats">
-                        <strong>Technology:</strong> DERNet Classification (DenseNet121, ResNet50,
-                        EfficientNetV2-S) + YOLO11 Object Detection<br>
-                        <strong>Validation:</strong> 91.03% AUROC | 83.09% F1-Score | 84.91% Sensitivity | VinDr-SpineXR
-                        Dataset<br>
-                        <strong>Framework:</strong> PyTorch 2.1.0 | Flask 3.0.0 | Python 3.9+
-                    </div>
-
-                    <nav class="footer-links">
-                        <a href="https://github.com/pronad1/Deploy-Model" target="_blank" class="footer-link">📦 GitHub
-                            Repository</a>
-                        <a href="/health" class="footer-link">🔧 System Health</a>
-                        <a href="https://vindr.ai/datasets/spinexr" target="_blank" class="footer-link">📊 Dataset
-                            Information</a>
-                        <a href="https://github.com/pronad1/Deploy-Model/blob/main/README.md" target="_blank"
-                            class="footer-link">📖 Documentation</a>
-                    </nav>
-
-                    <p class="footer-copyright">
-                        © 2026 Spinal Lesion Detection System | Powered by AI & Deep Learning<br>
-                        Built with PyTorch, Flask, and state-of-the-art computer vision techniques
-                    </p>
-                </div>
-            </footer>
         </div>
     </div>
-
-    <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
-
 </html>
