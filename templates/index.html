@@ -1,140 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AI-Powered Medical Image Analysis for Stroke Segmentation">
-    <title>DSANet-ISLES Stroke Lesion Segmentation System | AI Diagnostic Tool</title>
-
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+    <title>DSANet-ISLES Clinical Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
-
 <body>
-    <div class="app-container">
-        <div class="main-card">
-            <!-- Header -->
-            <header class="app-header">
-                <div class="header-content">
-                    <div class="header-icon">🧠</div>
-                    <h1 class="header-title">DSANet-ISLES Stroke Lesion Segmentation System</h1>
-                    <p class="header-subtitle">Interpretable Multi-Architecture Ensemble for Low-Resource Segmentation</p>
-
-                    <div class="header-stats">
-                        <div class="stat-item">
-                            <span class="stat-value">92.00%</span>
-                            <span class="stat-label">DSC</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">DSANet</span>
-                            <span class="stat-label">Ensemble</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main class="app-content">
-                <!-- Upload Section -->
-                <section>
-                    <div class="upload-zone" id="uploadZone">
-                        <div class="upload-icon">📁</div>
-                        <div class="upload-title">Drop your MRI slice or normal image here</div>
-                        <div class="upload-hint">Supported formats: .dcm, .jpg, .png, .jpeg (Max 16MB)</div>
-                        <input type="file" id="fileInput" accept=".dcm,.dicom,.jpg,.jpeg,.png" hidden>
-                        <button class="btn btn-primary" id="uploadBtn" style="display: none; margin-top: 1.5rem;">
-                            🔬 Analyze Stroke Lesion
-                        </button>
-                    </div>
-                </section>
-
-                <section class="loading-screen" id="loadingScreen" style="display: none;">
-                    <div class="spinner"></div>
-                    <p class="loading-text">Generating Segmentation Mask...</p>
-                    <p class="loading-subtext">Executing 3D Test-Time Augmentations via SegResNet, AttentionUnet, and DERNet.</p>
-                </section>
-
-                <section class="alert alert-error" id="alertError" style="display: none;">
-                    <div class="text-center">
-                        <div class="alert-icon">⚠️</div>
-                        <div class="alert-title">Upload Error</div>
-                        <p id="errorMessage"></p>
-                        <button class="btn btn-primary mt-lg" onclick="location.reload()">
-                            🔄 Try Again
-                        </button>
-                    </div>
-                </section>
-
-                <!-- Results Section -->
-                <section class="results-container" id="resultsContainer" style="display: none;">
-                    <article class="result-card">
-                        <div class="result-header">
-                            <h2 class="result-title">📊 Stroke Segmentation Result</h2>
-                        </div>
-
-                        <div class="metrics-grid">
-                            <div class="metric-box">
-                                <div class="metric-label">Infarct Volume (mL)</div>
-                                <div class="metric-value" id="infarctVolume">-</div>
-                            </div>
-                            <div class="metric-box">
-                                <div class="metric-label">Lesion Pixels</div>
-                                <div class="metric-value" id="lesionPixels">-</div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="result-card">
-                        <div class="result-header">
-                            <h2 class="result-title">🎯 Lesion Segmentation Mask Overlay</h2>
-                        </div>
-
-                        <div class="image-preview">
-                            <h3 style="color: var(--gray-800); margin-bottom: 1rem;">Annotated MRI Slice</h3>
-                            <img id="annotatedImage" src="" alt="Annotated scan" class="preview-image">
-                        </div>
-                    </article>
-
-                    <article class="result-card">
-                        <div class="result-header">
-                            <h2 class="result-title">📋 Original MRI Scan</h2>
-                        </div>
-
-                        <div class="image-preview">
-                            <img id="previewImage" src="" alt="Original scan" class="preview-image">
-                        </div>
-
-                        <div class="metrics-grid mt-lg">
-                            <div class="metric-box">
-                                <div class="metric-label">Patient ID</div>
-                                <div class="metric-value" style="font-size: 1.25rem;" id="patientId">-</div>
-                            </div>
-                            <div class="metric-box">
-                                <div class="metric-label">Study Date</div>
-                                <div class="metric-value" style="font-size: 1.25rem;" id="studyDate">-</div>
-                            </div>
-                            <div class="metric-box">
-                                <div class="metric-label">Modality</div>
-                                <div class="metric-value" style="font-size: 1.25rem;" id="modality">-</div>
-                            </div>
-                            <div class="metric-box">
-                                <div class="metric-label">Image Dimensions</div>
-                                <div class="metric-value" style="font-size: 1.25rem;" id="imageSize">-</div>
-                            </div>
-                        </div>
-                    </article>
-                    
-                    <div style="text-align: center; margin-top: 2rem;">
-                        <button class="btn btn-primary" onclick="location.reload()">
-                            🔄 Submit New Scan
-                        </button>
-                    </div>
-                </section>
-
-            </main>
+    <header class="hero">
+        <div class="hero-inner">
+            <i class="ph-fill ph-brain hero-icon"></i>
+            <h1>DSANet-ISLES Stroke Segmentation Suite</h1>
+            <p>AI-powered ischemic lesion analysis with ensemble inference for fast clinical review.</p>
+            <div class="hero-kpis">
+                <article>
+                    <strong>3-Model</strong>
+                    <span>Ensemble</span>
+                </article>
+                <article>
+                    <strong>TTA</strong>
+                    <span>Inference</span>
+                </article>
+                <article>
+                    <strong>mL</strong>
+                    <span>Volumetry</span>
+                </article>
+            </div>
         </div>
-    </div>
+    </header>
+
+    <main class="shell">
+        <aside class="left-rail">
+            <section class="card">
+                <h2><i class="ph ph-upload-simple"></i> Upload Scanner Data</h2>
+                <p class="sub">DICOM, PNG, JPG. Max recommended size: 16MB</p>
+                <div class="drop-zone" id="uploadZone">
+                    <i class="ph ph-folder-open drop-icon"></i>
+                    <h3 class="upload-text">Drop your scan here or click to browse</h3>
+                    <p>Secure processing in local runtime</p>
+                </div>
+                <input type="file" id="fileInput" accept=".dcm,.dicom,.jpg,.jpeg,.png" class="hidden">
+                <button id="uploadBtn" class="btn hidden">
+                    <i class="ph ph-lightning"></i>
+                    Analyze Scan
+                </button>
+            </section>
+
+            <section class="card hidden" id="metadataContainer">
+                <h2><i class="ph ph-files"></i> Scan Metadata</h2>
+                <ul class="meta-list">
+                    <li><span>Patient ID</span><strong id="metaId">--</strong></li>
+                    <li><span>Modality</span><strong id="metaMod">--</strong></li>
+                    <li><span>Study Date</span><strong id="metaDate">--</strong></li>
+                    <li><span>Resolution</span><strong id="metaDim">--</strong></li>
+                </ul>
+            </section>
+
+            <section class="notice">
+                <h3><i class="ph ph-shield-check"></i> Medical Disclaimer</h3>
+                <p>This output is for research and decision support. Final diagnosis must be made by qualified clinicians.</p>
+            </section>
+        </aside>
+
+        <section class="right-pane">
+            <div class="state placeholder" id="resultsPlaceholder">
+                <i class="ph ph-activity"></i>
+                <h2>Awaiting Analysis</h2>
+                <p>Upload an imaging slice to generate segmentation and lesion metrics.</p>
+            </div>
+
+            <div class="state loading hidden" id="loadingScreen">
+                <div class="scan-ring"></div>
+                <h2>Running Ensemble Pipeline</h2>
+                <p>Executing DERNet, SegResNet and AttentionUnet with test-time augmentation.</p>
+            </div>
+
+            <div class="state error hidden" id="alertError">
+                <i class="ph-fill ph-warning-octagon"></i>
+                <h2>Analysis Failed</h2>
+                <p id="errorMessage">An error occurred while processing the scan.</p>
+            </div>
+
+            <div class="hidden" id="resultsContainer">
+                <section class="result-head">
+                    <h2><i class="ph ph-chart-bar"></i> Segmentation Result</h2>
+                    <span id="clinicalStatus" class="status neutral">Processing Complete</span>
+                </section>
+
+                <section class="kpi-grid">
+                    <article class="kpi">
+                        <span>Infarct Volume</span>
+                        <h3><span id="infarctVolume">0.00</span> <small>mL</small></h3>
+                    </article>
+                    <article class="kpi">
+                        <span>Lesion Pixels</span>
+                        <h3><span id="lesionPixels">0</span> <small>px</small></h3>
+                    </article>
+                    <article class="kpi">
+                        <span>Model Confidence</span>
+                        <h3><span id="confidenceScore">0.0</span> <small>%</small></h3>
+                    </article>
+                </section>
+
+                <section class="viewer-grid">
+                    <article class="viewer-card">
+                        <header><i class="ph ph-image"></i> Original Slice</header>
+                        <div class="viewer-body"><img id="previewImage" src="" alt="Original slice"></div>
+                    </article>
+                    <article class="viewer-card highlight">
+                        <header><i class="ph ph-crosshair"></i> Segmentation Overlay</header>
+                        <div class="viewer-body overlay-wrap">
+                            <img id="annotatedImage" src="" alt="Segmentation overlay">
+                            <div id="noLesionFlag" class="good-flag hidden"><i class="ph-fill ph-check-circle"></i> No ischemic lesion detected</div>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="explain-box">
+                    <h3><i class="ph ph-lightbulb"></i> Explainability Views</h3>
+                    <div class="chips">
+                        <button type="button" class="chip">Grad-CAM</button>
+                        <button type="button" class="chip">LIME</button>
+                        <button type="button" class="chip">Boundary Check</button>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <footer class="foot">
+        <p>DSANet-ISLES Clinical Dashboard | Built with Flask + PyTorch</p>
+    </footer>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
