@@ -3,136 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSANet-ISLES Clinical Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <meta name="description" content="ISLES Stroke Lesion Segmentation Dashboard">
+    <title>ISLES Stroke Lesion Segmentation System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
-    <header class="hero">
-        <div class="hero-inner">
-            <i class="ph-fill ph-brain hero-icon"></i>
-            <h1>DSANet-ISLES Stroke Segmentation Suite</h1>
-            <p>AI-powered ischemic lesion analysis with ensemble inference for fast clinical review.</p>
-            <div class="hero-kpis">
-                <article>
-                    <strong>3-Model</strong>
-                    <span>Ensemble</span>
-                </article>
-                <article>
-                    <strong>TTA</strong>
-                    <span>Inference</span>
-                </article>
-                <article>
-                    <strong>mL</strong>
-                    <span>Volumetry</span>
-                </article>
-            </div>
-        </div>
-    </header>
-
-    <main class="shell">
-        <aside class="left-rail">
-            <section class="card">
-                <h2><i class="ph ph-upload-simple"></i> Upload Scanner Data</h2>
-                <p class="sub">DICOM, PNG, JPG. Max recommended size: 16MB</p>
-                <div class="drop-zone" id="uploadZone">
-                    <i class="ph ph-folder-open drop-icon"></i>
-                    <h3 class="upload-text">Drop your scan here or click to browse</h3>
-                    <p>Secure processing in local runtime</p>
+    <div class="app-container">
+        <div class="main-card">
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="header-icon">MRI</div>
+                    <h1 class="header-title">ISLES Stroke Lesion Segmentation System</h1>
+                    <p class="header-subtitle">AI-Powered Ischemic Stroke Lesion Analysis for DWI / ADC / FLAIR</p>
+                    <div class="header-stats">
+                        <div class="stat-item"><span class="stat-value">ISLES-2022</span><span class="stat-label">Dataset</span></div>
+                        <div class="stat-item"><span class="stat-value">3-Model</span><span class="stat-label">Ensemble</span></div>
+                        <div class="stat-item"><span class="stat-value">mL</span><span class="stat-label">Volumetry</span></div>
+                    </div>
                 </div>
-                <input type="file" id="fileInput" accept=".dcm,.dicom,.jpg,.jpeg,.png" class="hidden">
-                <button id="uploadBtn" class="btn hidden">
-                    <i class="ph ph-lightning"></i>
-                    Analyze Scan
-                </button>
-            </section>
+            </header>
 
-            <section class="card hidden" id="metadataContainer">
-                <h2><i class="ph ph-files"></i> Scan Metadata</h2>
-                <ul class="meta-list">
-                    <li><span>Patient ID</span><strong id="metaId">--</strong></li>
-                    <li><span>Modality</span><strong id="metaMod">--</strong></li>
-                    <li><span>Study Date</span><strong id="metaDate">--</strong></li>
-                    <li><span>Resolution</span><strong id="metaDim">--</strong></li>
-                </ul>
-            </section>
-
-            <section class="notice">
-                <h3><i class="ph ph-shield-check"></i> Medical Disclaimer</h3>
-                <p>This output is for research and decision support. Final diagnosis must be made by qualified clinicians.</p>
-            </section>
-        </aside>
-
-        <section class="right-pane">
-            <div class="state placeholder" id="resultsPlaceholder">
-                <i class="ph ph-activity"></i>
-                <h2>Awaiting Analysis</h2>
-                <p>Upload an imaging slice to generate segmentation and lesion metrics.</p>
-            </div>
-
-            <div class="state loading hidden" id="loadingScreen">
-                <div class="scan-ring"></div>
-                <h2>Running Ensemble Pipeline</h2>
-                <p>Executing DERNet, SegResNet and AttentionUnet with test-time augmentation.</p>
-            </div>
-
-            <div class="state error hidden" id="alertError">
-                <i class="ph-fill ph-warning-octagon"></i>
-                <h2>Analysis Failed</h2>
-                <p id="errorMessage">An error occurred while processing the scan.</p>
-            </div>
-
-            <div class="hidden" id="resultsContainer">
-                <section class="result-head">
-                    <h2><i class="ph ph-chart-bar"></i> Segmentation Result</h2>
-                    <span id="clinicalStatus" class="status neutral">Processing Complete</span>
-                </section>
-
-                <section class="kpi-grid">
-                    <article class="kpi">
-                        <span>Infarct Volume</span>
-                        <h3><span id="infarctVolume">0.00</span> <small>mL</small></h3>
-                    </article>
-                    <article class="kpi">
-                        <span>Lesion Pixels</span>
-                        <h3><span id="lesionPixels">0</span> <small>px</small></h3>
-                    </article>
-                    <article class="kpi">
-                        <span>Model Confidence</span>
-                        <h3><span id="confidenceScore">0.0</span> <small>%</small></h3>
-                    </article>
-                </section>
-
-                <section class="viewer-grid">
-                    <article class="viewer-card">
-                        <header><i class="ph ph-image"></i> Original Slice</header>
-                        <div class="viewer-body"><img id="previewImage" src="" alt="Original slice"></div>
-                    </article>
-                    <article class="viewer-card highlight">
-                        <header><i class="ph ph-crosshair"></i> Segmentation Overlay</header>
-                        <div class="viewer-body overlay-wrap">
-                            <img id="annotatedImage" src="" alt="Segmentation overlay">
-                            <div id="noLesionFlag" class="good-flag hidden"><i class="ph-fill ph-check-circle"></i> No ischemic lesion detected</div>
-                        </div>
-                    </article>
-                </section>
-
-                <section class="explain-box">
-                    <h3><i class="ph ph-lightbulb"></i> Explainability Views</h3>
-                    <div class="chips">
-                        <button type="button" class="chip">Grad-CAM</button>
-                        <button type="button" class="chip">LIME</button>
-                        <button type="button" class="chip">Boundary Check</button>
+            <main class="app-content">
+                <section>
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">FILE</div>
+                        <div class="upload-title">Drop DICOM/JPG/PNG scan here or click to browse</div>
+                        <div class="upload-hint">Supported formats: .dcm, .dicom, .jpg, .jpeg, .png (Max 16MB)</div>
+                        <input type="file" id="fileInput" accept=".dcm,.dicom,.jpg,.jpeg,.png" hidden>
+                        <button class="btn btn-primary" id="uploadBtn" style="display: none; margin-top: 1.5rem;">Analyze Segmentation</button>
                     </div>
                 </section>
-            </div>
-        </section>
-    </main>
 
-    <footer class="foot">
-        <p>DSANet-ISLES Clinical Dashboard | Built with Flask + PyTorch</p>
-    </footer>
+                <section class="loading-screen" id="loadingScreen">
+                    <div class="spinner"></div>
+                    <p class="loading-text">Running ISLES segmentation pipeline...</p>
+                    <p class="loading-subtext">Generating lesion mask and volumetric metrics.</p>
+                </section>
+
+                <section class="alert alert-error" id="alertError">
+                    <div class="text-center">
+                        <div class="alert-icon">WARN</div>
+                        <div class="alert-title">Analysis Error</div>
+                        <p id="errorMessage"></p>
+                        <button class="btn btn-primary mt-lg" onclick="location.reload()">Try Again</button>
+                    </div>
+                </section>
+
+                <section class="results-container" id="resultsContainer">
+                    <article class="result-card" id="classificationCard">
+                        <div class="result-header">
+                            <h2 class="result-title">Segmentation Result</h2>
+                            <span class="status-badge" id="statusBadge"></span>
+                        </div>
+
+                        <div class="metrics-grid">
+                            <div class="metric-box">
+                                <div class="metric-label">Infarct Volume</div>
+                                <div class="metric-value" id="infarctVolume">-</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Lesion Pixels</div>
+                                <div class="metric-value" id="lesionPixels">-</div>
+                            </div>
+                            <div class="metric-box">
+                                <div class="metric-label">Confidence</div>
+                                <div class="metric-value" id="confidence">-</div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="result-card" id="detectionCard" style="display: block;">
+                        <div class="result-header"><h2 class="result-title">Lesion Overlay</h2></div>
+                        <div class="image-preview">
+                            <img id="annotatedImage" src="" alt="Segmentation overlay" class="preview-image">
+                        </div>
+                    </article>
+
+                    <article class="result-card">
+                        <div class="result-header"><h2 class="result-title">Original Scan and Metadata</h2></div>
+                        <div class="image-preview">
+                            <img id="previewImage" src="" alt="Original scan" class="preview-image">
+                        </div>
+
+                        <div class="metrics-grid mt-lg">
+                            <div class="metric-box"><div class="metric-label">Patient ID</div><div class="metric-value" style="font-size: 1.25rem;" id="patientId">-</div></div>
+                            <div class="metric-box"><div class="metric-label">Study Date</div><div class="metric-value" style="font-size: 1.25rem;" id="studyDate">-</div></div>
+                            <div class="metric-box"><div class="metric-label">Modality</div><div class="metric-value" style="font-size: 1.25rem;" id="modality">-</div></div>
+                            <div class="metric-box"><div class="metric-label">Image Dimensions</div><div class="metric-value" style="font-size: 1.25rem;" id="imageSize">-</div></div>
+                        </div>
+                    </article>
+
+                    <aside class="info-box">
+                        <h3 class="info-box-title">Medical Disclaimer</h3>
+                        <p>This AI analysis is for research and educational use only and should not replace professional medical diagnosis.</p>
+                    </aside>
+
+                    <div class="text-center mt-lg">
+                        <button class="btn btn-primary" id="newScanBtn">Analyze Another Scan</button>
+                    </div>
+                </section>
+            </main>
+
+            <footer class="app-footer">
+                <div class="footer-content">
+                    <p class="footer-title">ISLES Stroke Lesion Segmentation System</p>
+                    <div class="footer-stats">
+                        <strong>Dataset:</strong> ISLES-2022<br>
+                        <strong>Task:</strong> Ischemic Stroke Lesion Segmentation<br>
+                        <strong>Framework:</strong> PyTorch | Flask | Python 3.9+
+                    </div>
+                    <nav class="footer-links">
+                        <a href="/health" class="footer-link">System Health</a>
+                        <a href="https://www.isles-challenge.org/" target="_blank" class="footer-link">ISLES Information</a>
+                        <a href="/" class="footer-link">Dashboard</a>
+                    </nav>
+                    <p class="footer-copyright">Copyright 2026 ISLES Segmentation System</p>
+                </div>
+            </footer>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

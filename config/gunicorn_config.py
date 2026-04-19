@@ -1,20 +1,40 @@
 import os
+import multiprocessing
 
-# Gunicorn configuration tailored for 3D volumetric MRI processing
+# CRITICAL: Bind to the PORT environment variable (Render requirement)
+bind = "0.0.0.0:" + str(os.environ.get("PORT", 5000))
 
-# Which port/socket to bind
-bind = "0.0.0.0:" + os.environ.get("PORT", "5000")
-
-# Worker Strategy
-# Eventlet or Gevent are great for I/O, but sync is better for heavy CPU/GPU PyTorch compute without memory blow-ups
+# Worker configuration - OPTIMIZED for Render's 512MB memory limit
+workers = 1  # Single worker - CRITICAL for low memory
 worker_class = "sync"
+threads = 1  # Single thread - prevents memory multiplication
+timeout = 600  # 10 minutes - allow time for first model load
+keepalive = 2
+graceful_timeout = 60  # Longer grace period for cleanup
 
-# Use exactly 1 worker to ensure the huge PyTorch 3D models don't multiply in memory and crash the server
-workers = 1
+# Logging - IMPORTANT: Shows port binding in logs
+accesslog = "-"
+errorlog = "-"
+loglevel = "info"
+capture_output = True  # Capture app output to logs
 
-# Long timeout (300 seconds) because 3D TTA inferences take longer than standard 2D web requests
-timeout = 300
+# Memory optimization - CRITICAL
+max_requests = 100  # Restart worker periodically to prevent memory leaks
+max_requests_jitter = 20
+worker_tmp_dir = "/dev/shm"  # Use shared memory for worker files (faster, less I/O)
 
-# To prevent memory leaks in Python
-max_requests = 10  # Restart worker after 10 requests to release GPU/RAM
-max_requests_jitter = 2
+# Startup configuration
+preload_app = False  # CHANGED: Don't preload - let lazy loading work on first request
+
+# Limit request sizes to prevent memory spikes
+limit_request_line = 4096
+limit_request_fields = 100
+limit_request_field_size = 8190
+
+# Hook to verify port binding
+def on_starting(server):
+    """Called before master process is initialized"""
+    print(f"🚀 Starting Gunicorn on {bind}")
+    print(f"📊 Workers: {workers}, Threads: {threads}")
+    print(f"💾 Memory optimization: Single worker, lazy model loading")
+

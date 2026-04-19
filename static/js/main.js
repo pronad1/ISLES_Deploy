@@ -1,160 +1,139 @@
-// DSANet-ISLES PRO Interaction Engine 
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const uploadBtn = document.getElementById('uploadBtn');
+const loadingScreen = document.getElementById('loadingScreen');
+const alertError = document.getElementById('alertError');
+const resultsContainer = document.getElementById('resultsContainer');
+const newScanBtn = document.getElementById('newScanBtn');
+
+let selectedFile = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-
-    const uploadZone = document.getElementById('uploadZone');
-    const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-    
-    // State Views
-    const idleState = document.getElementById('resultsPlaceholder');
-    const loadingScreen = document.getElementById('loadingScreen');
-    const alertError = document.getElementById('alertError');
-    const errorMessage = document.getElementById('errorMessage');
-    const resultsContainer = document.getElementById('resultsContainer');
-    const metadataContainer = document.getElementById('metadataContainer');
-
-    // Metrics Targets
-    const elInfarctVol = document.getElementById('infarctVolume');
-    const elLesionPixels = document.getElementById('lesionPixels');
-    const elConfidence = document.getElementById('confidenceScore');
-    const elPatientId = document.getElementById('metaId');
-    const elScanType = document.getElementById('metaMod');
-    const elScanDate = document.getElementById('metaDate');
-    const elResolution = document.getElementById('metaDim');
-    const elClinicalStatus = document.getElementById('clinicalStatus');
-
-    // Image Targeting
-    const imgSource = document.getElementById('previewImage');
-    const imgOverlay = document.getElementById('annotatedImage');
-    const noLesionFlag = document.getElementById('noLesionFlag');
-
-    let currentFile = null;
-
-    // Interaction Hooks
-    uploadZone.addEventListener('click', () => fileInput.click());
-    
-    ['dragover', 'dragenter'].forEach(evt => {
-        uploadZone.addEventListener(evt, e => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
-    });
-
-    ['dragleave', 'drop'].forEach(evt => {
-        uploadZone.addEventListener(evt, e => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-        });
-    });
-
-    uploadZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
-    fileInput.addEventListener('change', e => handleFiles(e.target.files));
-
-    function handleFiles(files) {
-        if (!files.length) return;
-        currentFile = files[0];
-
-        const textOutput = uploadZone.querySelector('.upload-text');
-        textOutput.textContent = currentFile.name;
-        textOutput.classList.add('text-primary');
-
-        uploadBtn.classList.remove('hidden');
-        resetViews();
-        idleState.classList.remove('hidden');
-    }
-
-    uploadBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (!currentFile) return;
-
-        resetViews();
-        loadingScreen.classList.remove('hidden');
-        uploadBtn.disabled = true;
-
-        const formData = new FormData();
-        formData.append('file', currentFile);
-
-        try {
-            const res = await fetch('/upload', { method: 'POST', body: formData });
-            const data = await res.json();
-
-            if (res.ok) {
-                renderResults(data);
-            } else {
-                throw new Error(data.error || 'Analysis Pipeline Failed.');
-            }
-        } catch (err) {
-            console.error(err);
-            handleError(err.message || "Network Error: Could not reach DSANet Core.");
-        } finally {
-            uploadBtn.disabled = false;
-        }
-    });
-
-    function resetViews() {
-        idleState.classList.add('hidden');
-        loadingScreen.classList.add('hidden');
-        alertError.classList.add('hidden');
-        resultsContainer.classList.add('hidden');
-        metadataContainer.classList.add('hidden');
-        noLesionFlag.classList.add('hidden');
-        
-        imgSource.src = "";
-        imgOverlay.src = "";
-
-        if (elClinicalStatus) {
-            elClinicalStatus.textContent = 'Processing Complete';
-            elClinicalStatus.className = 'status neutral';
-        }
-    }
-
-    function handleError(msg) {
-        resetViews();
-        errorMessage.textContent = msg;
-        alertError.classList.remove('hidden');
-    }
-
-    function renderResults(data) {
-        resetViews();
-        metadataContainer.classList.remove('hidden');
-        resultsContainer.classList.remove('hidden');
-
-        // Render Demographics
-        if(data.metadata) {
-            elPatientId.textContent = data.metadata.patient_id || '--';
-            elScanType.textContent = data.metadata.modality || '--';
-            elScanDate.textContent = data.metadata.study_date || '--';
-            if (Array.isArray(data.metadata.shape)) {
-                elResolution.textContent = `${data.metadata.shape[0]}x${data.metadata.shape[1]}`;
-            }
-        }
-
-        // Render Volumetrics
-        elInfarctVol.textContent = data.infarct_volume_ml ? data.infarct_volume_ml.toFixed(2) : "0.00";
-        elLesionPixels.textContent = data.lesion_pixels || "0";
-        if (elConfidence) {
-            const conf = typeof data.confidence === 'number' ? (data.confidence * 100).toFixed(1) : '0.0';
-            elConfidence.textContent = conf;
-        }
-
-        const px = parseInt(data.lesion_pixels, 10) || 0;
-        if (px === 0) {
-            noLesionFlag.classList.remove('hidden');
-            if (elClinicalStatus) {
-                elClinicalStatus.textContent = 'Normal';
-                elClinicalStatus.className = 'status good';
-            }
-        } else {
-            if (elClinicalStatus) {
-                elClinicalStatus.textContent = 'Lesion Detected';
-                elClinicalStatus.className = 'status warn';
-            }
-        }
-
-        // Render Viewer 
-        const ts = Date.now();
-        imgSource.src = `/${data.image_path}?t=${ts}`;
-        imgOverlay.src = `/${data.overlay_path}?t=${ts}`;
-    }
+    initializeUploadZone();
+    uploadBtn.addEventListener('click', handleUpload);
+    newScanBtn.addEventListener('click', () => location.reload());
 });
+
+function initializeUploadZone() {
+    uploadZone.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') {
+            fileInput.click();
+        }
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+}
+
+function handleFileSelect(file) {
+    selectedFile = file;
+    const fileName = file.name;
+    const fileSize = (file.size / 1024 / 1024).toFixed(2);
+
+    document.querySelector('.upload-title').innerHTML = '<span style="color: var(--success);">File Selected</span>';
+    document.querySelector('.upload-hint').innerHTML = `<strong>${fileName}</strong><br>Size: ${fileSize} MB`;
+
+    uploadBtn.style.display = 'inline-flex';
+    fileInput.value = '';
+}
+
+async function handleUpload(e) {
+    e.preventDefault();
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    showLoading();
+
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || data.error || 'Upload failed');
+        }
+
+        displayResults(data);
+    } catch (error) {
+        displayError(error.message);
+    }
+}
+
+function showLoading() {
+    uploadZone.parentElement.style.display = 'none';
+    alertError.style.display = 'none';
+    resultsContainer.style.display = 'none';
+    loadingScreen.style.display = 'block';
+}
+
+function hideLoading() {
+    loadingScreen.style.display = 'none';
+}
+
+function displayError(message) {
+    hideLoading();
+    alertError.style.display = 'block';
+    document.getElementById('errorMessage').textContent = message;
+}
+
+function displayResults(data) {
+    hideLoading();
+    resultsContainer.style.display = 'block';
+
+    const lesionPixels = Number(data.lesion_pixels || 0);
+    const confidencePct = Number(data.confidence || 0) * 100;
+
+    document.getElementById('infarctVolume').textContent = `${Number(data.infarct_volume_ml || 0).toFixed(2)} mL`;
+    document.getElementById('lesionPixels').textContent = `${lesionPixels}`;
+    document.getElementById('confidence').textContent = `${confidencePct.toFixed(1)}%`;
+
+    const badge = document.getElementById('statusBadge');
+    if (lesionPixels > 0) {
+        badge.className = 'status-badge abnormal';
+        badge.textContent = 'LESION DETECTED';
+    } else {
+        badge.className = 'status-badge normal';
+        badge.textContent = 'NO LESION DETECTED';
+    }
+
+    const stamp = Date.now();
+    document.getElementById('previewImage').src = `/${data.image_path}?t=${stamp}`;
+    document.getElementById('annotatedImage').src = `/${data.overlay_path}?t=${stamp}`;
+
+    const metadata = data.metadata || {};
+    document.getElementById('patientId').textContent = metadata.patient_id || 'N/A';
+    document.getElementById('studyDate').textContent = metadata.study_date || 'N/A';
+    document.getElementById('modality').textContent = metadata.modality || 'N/A';
+
+    if (Array.isArray(metadata.shape)) {
+        document.getElementById('imageSize').textContent = `${metadata.shape[0]}x${metadata.shape[1]}`;
+    } else {
+        document.getElementById('imageSize').textContent = 'N/A';
+    }
+
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
