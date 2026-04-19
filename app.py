@@ -106,6 +106,10 @@ def read_image(filepath, is_dicom):
             'patient_id': str(getattr(ds, 'PatientID', 'Unknown')),
             'study_date': str(getattr(ds, 'StudyDate', 'Unknown')),
             'modality': str(getattr(ds, 'Modality', 'MRI')),
+            'series_description': str(getattr(ds, 'SeriesDescription', 'Unknown')),
+            'body_part_examined': str(getattr(ds, 'BodyPartExamined', 'Unknown')),
+            'instance_number': str(getattr(ds, 'InstanceNumber', 'Unknown')),
+            'slice_location': str(getattr(ds, 'SliceLocation', 'Unknown')),
         }
         return pixels, metadata
 
@@ -117,8 +121,73 @@ def read_image(filepath, is_dicom):
         'patient_id': 'N/A',
         'study_date': 'N/A',
         'modality': 'Non-DICOM Image',
+        'series_description': 'N/A',
+        'body_part_examined': 'N/A',
+        'instance_number': 'N/A',
+        'slice_location': 'N/A',
     }
     return img.astype(float), metadata
+
+
+def build_scan_position_note(metadata, is_dicom):
+    if not is_dicom:
+        return 'Scan position is unavailable for JPG/PNG images. Upload a DICOM series to view slice location details.'
+
+    body_part = metadata.get('body_part_examined', 'Unknown')
+    series = metadata.get('series_description', 'Unknown')
+    instance_number = metadata.get('instance_number', 'Unknown')
+    slice_location = metadata.get('slice_location', 'Unknown')
+
+    detail_parts = []
+    if body_part not in {'Unknown', 'N/A', ''}:
+        detail_parts.append(f'Body part: {body_part}')
+    if series not in {'Unknown', 'N/A', ''}:
+        detail_parts.append(f'Series: {series}')
+    if instance_number not in {'Unknown', 'N/A', ''}:
+        detail_parts.append(f'Slice number: {instance_number}')
+    if slice_location not in {'Unknown', 'N/A', ''}:
+        detail_parts.append(f'Slice location tag: {slice_location}')
+
+    if not detail_parts:
+        return 'This DICOM file does not include clear slice-position tags.'
+
+    return ' | '.join(detail_parts)
+
+
+def build_summary_text(lesion_pixels, infarct_volume_ml, confidence):
+    confidence_pct = round(confidence * 100, 1)
+    if lesion_pixels > 0:
+        return (
+            f'Possible lesion-like region detected in this slice. Estimated affected volume: {infarct_volume_ml:.2f} mL '
+            f'with model confidence {confidence_pct}%. Please review with a radiologist.'
+        )
+
+    return (
+        f'No clear lesion-like region detected in this slice. Estimated affected volume: {infarct_volume_ml:.2f} mL '
+        f'with model confidence {confidence_pct}%. This does not replace clinical diagnosis.'
+    )
+
+
+def classify_severity_band(lesion_pixels, infarct_volume_ml):
+    if lesion_pixels <= 0 or infarct_volume_ml < 1.0:
+        return {
+            'level': 'Low',
+            'color': 'green',
+            'note': 'Very small or no lesion-like area detected in this slice.'
+        }
+
+    if infarct_volume_ml < 10.0:
+        return {
+            'level': 'Moderate',
+            'color': 'amber',
+            'note': 'Noticeable lesion-like area detected; clinical review is recommended.'
+        }
+
+    return {
+        'level': 'High',
+        'color': 'red',
+        'note': 'Large lesion-like area detected in this slice; urgent expert review is recommended.'
+    }
 
 
 def infer_segmentation_mask(pixels):
@@ -202,6 +271,9 @@ def upload_file():
         lesion_pixels = int(mask.sum())
         infarct_volume_ml = (lesion_pixels * 1.5 * 64) / 1000.0
         confidence = 0.87 if lesion_pixels > 0 else 0.62
+        scan_position_note = build_scan_position_note(metadata, is_dicom)
+        summary_text = build_summary_text(lesion_pixels, infarct_volume_ml, confidence)
+        severity = classify_severity_band(lesion_pixels, infarct_volume_ml)
 
         image_path, mask_path, overlay_path = save_outputs(pixel_u8, mask)
 
@@ -213,8 +285,18 @@ def upload_file():
             'infarct_volume_ml': round(infarct_volume_ml, 2),
             'lesion_pixels': lesion_pixels,
             'confidence': confidence,
+            'explanation': {
+                'summary': summary_text,
+                'value_guide': (
+                    'Infarct Volume (mL) is an estimated burden for this processed slice. '
+                    'Lesion Pixels is the segmented pixel count. Confidence reflects model certainty, not final diagnosis.'
+                ),
+                'position_note': scan_position_note,
+                'severity': severity,
+            },
             'metadata': {
                 **metadata,
+                'scan_position': scan_position_note,
                 'shape': [int(pixel_u8.shape[1]), int(pixel_u8.shape[0])]
             }
         })

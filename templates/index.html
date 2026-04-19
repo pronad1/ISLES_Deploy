@@ -56,6 +56,11 @@
                             <span class="status-badge" id="statusBadge"></span>
                         </div>
 
+                        <div class="severity-wrap">
+                            <span class="severity-label">Severity Band</span>
+                            <span class="severity-chip" id="severityChip">-</span>
+                        </div>
+
                         <div class="metrics-grid">
                             <div class="metric-box">
                                 <div class="metric-label">Infarct Volume</div>
@@ -69,6 +74,12 @@
                                 <div class="metric-label">Confidence</div>
                                 <div class="metric-value" id="confidence">-</div>
                             </div>
+                        </div>
+
+                        <div class="explain-panel mt-lg">
+                            <h3 class="explain-title">What This Means (Simple View)</h3>
+                            <p id="summaryText" class="explain-text">-</p>
+                            <p id="valueGuide" class="explain-subtext">-</p>
                         </div>
                     </article>
 
@@ -90,6 +101,7 @@
                             <div class="metric-box"><div class="metric-label">Study Date</div><div class="metric-value" style="font-size: 1.25rem;" id="studyDate">-</div></div>
                             <div class="metric-box"><div class="metric-label">Modality</div><div class="metric-value" style="font-size: 1.25rem;" id="modality">-</div></div>
                             <div class="metric-box"><div class="metric-label">Image Dimensions</div><div class="metric-value" style="font-size: 1.25rem;" id="imageSize">-</div></div>
+                            <div class="metric-box"><div class="metric-label">Scan Position</div><div class="metric-value" style="font-size: 1rem;" id="scanPosition">-</div></div>
                         </div>
                     </article>
 

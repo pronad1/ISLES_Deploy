@@ -125,9 +125,22 @@ function displayResults(data) {
     document.getElementById('annotatedImage').src = `/${data.overlay_path}?t=${stamp}`;
 
     const metadata = data.metadata || {};
+    const explanation = data.explanation || {};
+    const severity = explanation.severity || {};
     document.getElementById('patientId').textContent = metadata.patient_id || 'N/A';
     document.getElementById('studyDate').textContent = metadata.study_date || 'N/A';
     document.getElementById('modality').textContent = metadata.modality || 'N/A';
+    document.getElementById('scanPosition').textContent = metadata.scan_position || explanation.position_note || 'N/A';
+
+    document.getElementById('summaryText').textContent = explanation.summary || 'Result summary is unavailable.';
+    document.getElementById('valueGuide').textContent = explanation.value_guide || 'Value guide is unavailable.';
+
+    const severityChip = document.getElementById('severityChip');
+    const severityLevel = severity.level || 'Unknown';
+    const severityColor = severity.color || 'neutral';
+    const severityNote = severity.note || '';
+    severityChip.className = `severity-chip ${severityColor}`;
+    severityChip.textContent = severityNote ? `${severityLevel} - ${severityNote}` : severityLevel;
 
     if (Array.isArray(metadata.shape)) {
         document.getElementById('imageSize').textContent = `${metadata.shape[0]}x${metadata.shape[1]}`;
