@@ -134,6 +134,7 @@ function displayResults(data) {
 
     document.getElementById('summaryText').textContent = explanation.summary || 'Result summary is unavailable.';
     document.getElementById('valueGuide').textContent = explanation.value_guide || 'Value guide is unavailable.';
+    document.getElementById('reliabilityNote').textContent = explanation.input_reliability || 'Input reliability note is unavailable.';
 
     const severityChip = document.getElementById('severityChip');
     const severityLevel = severity.level || 'Unknown';
