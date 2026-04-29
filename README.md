@@ -43,6 +43,3 @@ Then open `http://127.0.0.1:5000`.
 
 ## Notebook
 Use [isles-2022-dataset-analysis.ipynb](isles-2022-dataset-analysis.ipynb) for dataset EDA and lesion-intensity analysis.
-
-## Disclaimer
-This project is for research and educational use. It is not a substitute for clinical diagnosis.
